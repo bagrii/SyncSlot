@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+
+  <title>SyncSlot: Lightweight meetings scheduler</title>
+
+  <link rel="shortcut icon" href="{{ url_for('home.static', filename='favicon.ico') }}">
+
+  <link href="{{url_for('home.static', filename='lib/fullcalendar/dist/fullcalendar.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/fullcalendar/dist/fullcalendar.print.css')}}" rel="stylesheet" media="print" />
+  <link href="{{url_for('home.static', filename='lib/flatpickr/dist/flatpickr.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/flatpickr/dist/themes/airbnb.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/alertifyjs/build/css/alertify.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/alertifyjs/build/css/themes/default.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/@fortawesome/fontawesome-free/css/all.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/bootswatch/dist/simplex/bootstrap.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/quill/dist/quill.core.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/quill/dist/quill.snow.css')}}" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro|Work+Sans|Keania+One" rel="stylesheet">
+  <link href="{{url_for('home.static', filename='stylesheets/create.min.css')}}" rel="stylesheet" />
+
+  <script src="{{url_for('home.static', filename='lib/flatpickr/dist/flatpickr.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/moment/moment.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/moment-timezone/builds/moment-timezone-with-data.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/quill/dist/quill.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/jquery/dist/jquery.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/bootstrap/dist/js/bootstrap.bundle.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/clipboard/dist/clipboard.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='js/bundle.js')}}"></script>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-108826790-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-108826790-2');
+  </script>
+
+
+  <script>
+    create_entry_point("{{meeting_id}}");
+  </script>
+</head>
+
+<body>
+  <!-- Add event dialog template -->
+  <template id="dialog-add-event">
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Date</span>
+      </div>
+      <input placeholder="type date here..." type="text" id="ae-date" class="form-control input-colors" aria-label="Small"
+             title="'Date' field cannot be left empty">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">From</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-from" class="form-control input-colors" aria-label="Small"
+             title="'From' field cannot be left empty" required>
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">To</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-to" class="form-control input-colors" aria-label="Small"
+             title="'To' field cannot be left empty" required>
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Title</span>
+      </div>
+      <input placeholder="type event title here..." type="text" id="ae-title" class="form-control input-colors" aria-label="Small"
+             title="'Title' field cannot be left empty" required>
+    </div>
+    <div id="ae-text" class="text-editor"></div>
+  </template>
+
+  <template id="dialog-add-busy-slot">
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Date</span>
+      </div>
+      <input placeholder="type date here..." type="text" id="ae-date" class="form-control input-colors" aria-label="Small"
+             title="'Date' field cannot be left empty">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">From</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-from" class="form-control input-colors" aria-label="Small"
+             title="'From' field cannot be left empty">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">To</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-to" class="form-control input-colors" aria-label="Small"
+             title="'To' field cannot be left empty">
+    </div>
+  </template>
+
+  <template id="dialog-view-event">
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Date</span>
+      </div>
+      <input type="text" id="ae-date" class="form-control input-colors" aria-label="Small" readonly>
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">From</span>
+      </div>
+      <input type="text" id="ae-from" class="form-control input-colors" aria-label="Small" readonly>
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">To</span>
+      </div>
+      <input type="text" id="ae-to" class="form-control input-colors" aria-label="Small" readonly>
+    </div>
+    <div id="ae-text" class="text-view"></div>
+  </template>
+
+  <div class="main-container">
+    <div class="container">
+      <div class="header-area">
+        <div>
+          <i class="far fa-handshake fa-lg header-area-logo-color"></i>
+          <span class="header-area-logo">SyncSlot </span>
+          <span class="header-area-logo-text">Lightweight meetings scheduler</span>
+        </div>
+        <div>
+          <span class="header-area-meet">
+            <a href="/">New meeting</a>
+          </span>
+          <span class="header-area-contact">
+            <a data-toggle="modal" data-target="#contact-dialog" href="#">Contact</a>
+          </span>
+          <span class="header-area-faq">
+            <a id="how-it-works" href="/">See how it works</a>
+          </span>
+        </div>
+      </div>
+      <div class="description-area">
+        <p>
+          <input id="description-title" type="text" class="form-control form-control-lg description-text" placeholder="Type meeting title here..."
+          />
+        </p>
+        <p>
+          <input id="description-subtitle" type="text" class="form-control form-control-sm description-text text-muted" placeholder="Type meeting subtitle here..."
+          />
+        </p>
+      </div>
+      <div class="calendar-area">
+        <div id="calendar" class="calendar-box-area">
+          <!-- <div id="calendar"></div> -->
+        </div>
+        <div class="tool-box-area">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Share</h5>
+              <p class="card-text">Share web address (the URL) with attendees to synchronize time slot.</p>
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <button id="toolbox-url-copy-button" class="btn btn-outline-secondary" type="button" title="Copied!" data-clipboard-target="#toolbox-url">Copy</button>
+                  </div>
+                  <input id="toolbox-url" type="text" class="form-control input-colors" placeholder="your private URL here..." value="{{share_url}}" readonly>
+                </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Your Email Address</h5>
+              <p class="card-text">Meeting accepted notification message will be delivered to this email address.</p>
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text input-description">Email</span>
+                </div>
+                <input id="toolbox-email" type="text" class="form-control" placeholder="type your email here...">
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Valid Range</h5>
+              <p class="card-text">Limits which dates the attendee can navigate to and where meetings can go.</p>
+              <p>
+                <button id="collapse-valid-range-button" class="btn btn-light" type="button" data-toggle="collapse" data-target="#collapse-valid-range"
+                  aria-expanded="false" aria-controls="collapse-valid-range">Enable Valid Range</button>
+              </p>
+              <div class="collapse" id="collapse-valid-range">
+                <div class="input-group input-group-sm mb-1">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text input-description">From/To</span>
+                  </div>
+                  <input placeholder="type date here..." type="text" id="toolbox-cal-valid" class="form-control input-colors" aria-label="Small"
+                    aria-describedby="inputGroup-sizing-sm">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Business Hours</h5>
+              <p class="card-text">Limit calendar to hours during the day in which business is commonly conducted (09:00
+                - 17:00).</p>
+              <p>
+                <button id="collapse-business-hours-button" class="btn btn-light" type="button" data-toggle="collapse" data-target="#collapse-business-hours"
+                  aria-expanded="false" aria-controls="collapse-business-hours">Enable Business Hours</button>
+              </p>
+              <div class="collapse" id="collapse-business-hours">
+                <div class="input-group input-group-sm mb-1">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text input-description">From</span>
+                  </div>
+                  <input id="toolbox-business-hours-from" type="text" class="form-control input-colors" placeholder="type time here..." readonly>
+                </div>
+                <div class="input-group input-group-sm mb-1">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text input-description">To</span>
+                  </div>
+                  <input id="toolbox-business-hours-to" type="text" class="form-control input-colors" placeholder="type time here..." readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-area">
+        <a href="https://onethinglab.com">&copy; 2018 OneThingLab</a>
+      </div>
+      <div class="draft-status">
+        <div id="draft-autosaved-message" class="alert alert-success" role="alert">
+          Saved.
+        </div>
+      </div>
+      <div class="modal fade" id="contact-dialog" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Contact</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="contact-form" class="form-horizontal" method="post">
+                <p>Use the form below or
+                  <span class="badge badge-info">email@mail.com</span> to ask a question or give us feedback.</p>
+                <fieldset>
+                  <div class="control-group">
+                    <label class="control-label" for="contact-name">Name:</label>
+                    <div class="controls">
+                      <input id="contact-name" name="contact-name" class="form-control" type="text" placeholder="Type your name here.." class="input-large"
+                        required="">
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="contact-email">Email:</label>
+                    <div class="controls">
+                      <input id="contact-email" name="contact-email" class="form-control" type="text" placeholder="Type your email here.." class="input-large"
+                        required="">
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="contact-message">Message:</label>
+                    <div class="controls">
+                      <textarea class="form-control" id="contact-message" name="contact-message" placeholder="Please enter your message here..."
+                        rows="5"></textarea>
+                    </div>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <center>
+                <button id="confirm-contact" data-target="#contact-dialog" name="confirm-contact" class="btn btn-info">Send</button>
+                <button class="btn btn-default" data-dismiss="modal">Close</button>
+              </center>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

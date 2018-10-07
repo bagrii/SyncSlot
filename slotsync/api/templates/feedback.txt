@@ -1,0 +1,11 @@
+Hi!
+
+You have received feedback from contact form:
+
+Name: {{feedback["name"]}}
+Email: {{feedback["email"]}}
+Message:
+{{feedback["message"]}}
+
+Have a nice day!
+- SyncSlot

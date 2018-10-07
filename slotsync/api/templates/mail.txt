@@ -1,0 +1,29 @@
+Hi!
+
+Your meeting has been accepted. Here is participant and meeting details:
+
+Meeting URL: https://syncslot.com/{{meeting_id}}
+
+Participant:
+    Name:   {{accepted_info["name"]}}
+    Email:  {{accepted_info["email"]}}
+    {% if accepted_info["comments"] %}
+    Comments:
+    "{{accepted_info["comments"]}}"
+    {% endif %}
+Meeting(s):
+{% for event in events %}
+    Title:  {{event.title}}
+    Date:   {{event.date}}
+    {%- if event.start_format == event.host_start %}
+    From    {{event.start_format}} To {{event.end_format}}
+    {%- else %}
+    Meeting Host (local time):
+        From {{event.host_start}} To {{event.host_end}}
+    Meeting Participant (local time):
+        From {{event.start_format}} To {{event.end_format}}
+    {%- endif %}
+{% endfor %}
+
+Have a nice day!
+-- SyncSlot

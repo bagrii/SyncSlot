@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve SyncSlot
+After=network.target
+
+[Service]
+User=dev
+Group=www-data
+WorkingDirectory=/home/dev/apps/slotsync
+Environment="PATH=/home/dev/apps/slotsync/venv/bin"
+ExecStart=/home/dev/apps/slotsync/venv/bin/uwsgi --ini slotsync.ini --enable-threads
+
+[Install]
+WantedBy=multi-user.target

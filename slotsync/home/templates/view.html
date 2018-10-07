@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+
+  <title>SyncSlot: Lightweight meetings scheduler</title>
+
+  <link rel="shortcut icon" href="{{ url_for('home.static', filename='favicon.ico') }}">
+  <link href="{{url_for('home.static', filename='lib/fullcalendar/dist/fullcalendar.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/fullcalendar/dist/fullcalendar.print.css')}}" rel="stylesheet"
+    media="print" />
+  <link href="{{url_for('home.static', filename='lib/alertifyjs/build/css/alertify.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/alertifyjs/build/css/themes/default.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/@fortawesome/fontawesome-free/css/all.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/bootswatch/dist/simplex/bootstrap.min.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/quill/dist/quill.core.css')}}" rel="stylesheet" />
+  <link href="{{url_for('home.static', filename='lib/quill/dist/quill.snow.css')}}" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro|Work+Sans|Keania+One" rel="stylesheet">
+  <link href="{{url_for('home.static', filename='stylesheets/view.min.css')}}" rel="stylesheet" />
+
+  <script src="{{url_for('home.static', filename='lib/moment/moment.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/moment-timezone/builds/moment-timezone-with-data.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/quill/dist/quill.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/jquery/dist/jquery.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/bootstrap/dist/js/bootstrap.bundle.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='lib/clipboard/dist/clipboard.min.js')}}"></script>
+  <script src="{{url_for('home.static', filename='js/bundle.js')}}"></script>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-108826790-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-108826790-2');
+  </script>
+
+  <script>
+      view_entry_point({{ config | tojson | safe }});
+  </script>
+</head>
+
+<body>
+  <!-- Add event dialog template -->
+  <template id="dialog-add-event">
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Date</span>
+      </div>
+      <input placeholder="type date here..." type="text" id="ae-date" class="form-control input-colors" aria-label="Small">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">From</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-from" class="form-control input-colors" aria-label="Small">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">To</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-to" class="form-control input-colors" aria-label="Small">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Title</span>
+      </div>
+      <input placeholder="type event title here..." type="text" id="ae-title" class="form-control input-colors"
+        aria-label="Small">
+    </div>
+    <div id="ae-text" class="text-editor"></div>
+  </template>
+
+  <template id="dialog-add-busy-slot">
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Date</span>
+      </div>
+      <input placeholder="type date here..." type="text" id="ae-date" class="form-control input-colors" aria-label="Small">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">From</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-from" class="form-control input-colors" aria-label="Small">
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">To</span>
+      </div>
+      <input placeholder="type time here..." type="text" id="ae-to" class="form-control input-colors" aria-label="Small">
+    </div>
+  </template>
+
+  <template id="dialog-view-event">
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">Date</span>
+      </div>
+      <input type="text" id="ae-date" class="form-control input-colors" aria-label="Small" readonly>
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">From</span>
+      </div>
+      <input type="text" id="ae-from" class="form-control input-colors" aria-label="Small" readonly>
+    </div>
+    <div class="input-group input-group-sm mb-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text input-description">To</span>
+      </div>
+      <input type="text" id="ae-to" class="form-control input-colors" aria-label="Small" readonly>
+    </div>
+    <div id="ae-text" class="text-view"></div>
+  </template>
+
+  <div class="main-container">
+    <div class="container">
+      <div class="header-area">
+        <div>
+          <i class="far fa-handshake fa-lg header-area-logo-color"></i>
+          <span class="header-area-logo">SyncSlot </span>
+          <span class="header-area-logo-text">Lightweight meetings scheduler</span>
+        </div>
+        <div>
+          <span class="header-area-meet">
+            <a href="/">New meeting</a>
+          </span>
+          <span class="header-area-contact">
+            <a data-toggle="modal" data-target="#contact-dialog" href="#">Contact</a>
+          </span>
+          <span class="header-area-faq">
+            <a id="how-it-works" href="/">See how it works</a>
+          </span>
+        </div>
+      </div>
+      <div class="description-area">
+        <p>
+          <input id="description-title" type="text" class="form-control form-control-lg description-text" readonly />
+        </p>
+        <p>
+          <input id="description-subtitle" type="text" class="form-control form-control-sm description-text text-muted"
+            readonly />
+        </p>
+      </div>
+      <div class="calendar-area">
+        <div id="calendar" class="calendar-box-area">
+          <!-- <div id="calendar"></div> -->
+        </div>
+        <div class="tool-box-area">
+          <form id="meeting-attendees-info" type="submit" onsubmit="return on_meeting_accept();">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Accept Meeting</h5>
+                <p class="card-text">By pressing <b>Accept</b> button, you notify meeting host that you agreed on
+                  meeting date
+                  and time.</p>
+                <p>
+                  <button type="submit" class="btn btn-info">Accept</button>
+                </p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Your Name</h5>
+                <p class="card-text">Let the meeting host know who has accepted meeting invite.</p>
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text input-description">Name</span>
+                  </div>
+                  <input id="toolbox-name" type="text" class="form-control" placeholder="type your name here..." required>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Your Email Address</h5>
+                <p class="card-text">Meeting accepted details will be delivered to this email address.</p>
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text input-description">Email</span>
+                  </div>
+                  <input id="toolbox-email" type="email" class="form-control" placeholder="type your email here..." required>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Comments</h5>
+                <p class="card-text">Add additional notes for meeting host.</p>
+                <p>
+                  <textarea id="toolbox-comments" class="form-control" style="resize: none;" rows="5" placeholder="Type your comments here..."></textarea>
+                </p>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="footer-area">
+        <a href="https://onethinglab.com">&copy; 2018 OneThingLab</a>
+      </div>
+      <div class="modal fade" id="contact-dialog" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Contact</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="contact-form" class="form-horizontal" method="post">
+                <p>Use the form below or
+                  <span class="badge badge-info">email@mail.com</span> to ask a question or give us feedback.</p>
+                <fieldset>
+                  <div class="control-group">
+                    <label class="control-label" for="contact-name">Name:</label>
+                    <div class="controls">
+                      <input id="contact-name" name="contact-name" class="form-control" type="text" placeholder="Type your name here.."
+                        class="input-large" required="">
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="contact-email">Email:</label>
+                    <div class="controls">
+                      <input id="contact-email" name="contact-email" class="form-control" type="text" placeholder="Type your email here.."
+                        class="input-large" required="">
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="contact-message">Message:</label>
+                    <div class="controls">
+                      <textarea class="form-control" id="contact-message" name="contact-message" placeholder="Please enter your message here..."
+                        rows="5"></textarea>
+                    </div>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <center>
+                <button id="confirm-contact" data-target="#contact-dialog" name="confirm-contact" class="btn btn-info">Send</button>
+                <button class="btn btn-default" data-dismiss="modal">Close</button>
+              </center>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="done-dialog" tabindex="-1" role="dialog" aria-labelledby="done-dialog-label"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="done-dialog-label">Meeting Accepted</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Done! Your meeting was successfully accepted.</p>
+              <p>The meeting host will be notified with meeting details.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
